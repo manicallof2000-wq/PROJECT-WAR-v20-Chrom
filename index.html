@@ -72,7 +72,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.164.1/examples/
 const root=document.querySelector('#game');
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x87c8ee);scene.fog=new THREE.Fog(0x9fc9d8,115,330);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,500);
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;root.appendChild(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;root.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xe8f5ff,0x526047,2.35));
 const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(-35,75,30);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-90;sun.shadow.camera.right=90;sun.shadow.camera.top=90;sun.shadow.camera.bottom=-90;sun.shadow.bias=-0.00025;scene.add(sun);
 const mat=(color,roughness=.85)=>new THREE.MeshStandardMaterial({color,roughness});
@@ -295,46 +295,23 @@ addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updat
 </script>
 <script>
 (function(){
-  setTimeout(function(){
-    if(window.__CITY_DRIVE_READY__) return;
-    const root=document.getElementById('game');
-    if(!root) return;
-    root.innerHTML='';
-    root.style.background='#91b9cc';
-    const cv=document.createElement('canvas');cv.style.cssText='width:100%;height:100%;display:block;touch-action:none';root.appendChild(cv);
-    const ctx=cv.getContext('2d');
-    const keys={};let speed=0,angle=0,cam=0,x=0,z=0,cash=50000,carName='هاچ‌بک شهری',garage=false,last=0;
-    function size(){cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)}size();addEventListener('resize',size);
-    addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key.toLowerCase()==='c')cam=1-cam;if(e.key.toLowerCase()==='g')garage=!garage});
-    addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
-    document.querySelectorAll('[data-key]').forEach(b=>{let k=b.dataset.key.toLowerCase();b.onpointerdown=e=>{e.preventDefault();keys[k]=true};['pointerup','pointercancel','pointerleave'].forEach(n=>b.addEventListener(n,()=>keys[k]=false))});
-    document.getElementById('cameraBtn').onclick=()=>cam=1-cam;
-    document.getElementById('garageBtn').onclick=()=>garage=true;
-    document.getElementById('closeGarage').onclick=()=>garage=false;
-    const cars=[['هاچ‌بک شهری',0,25],['کوپه اسپرت',12000,34],['سوپر اسپرت',30000,43],['آفرود',22000,29]];
-    function draw(){
-      const w=innerWidth,h=innerHeight;
-      ctx.fillStyle='#8fb8ca';ctx.fillRect(0,0,w,h);
-      ctx.fillStyle='#56734e';ctx.fillRect(0,h*.58,w,h*.42);
-      ctx.fillStyle='#343b40';ctx.beginPath();ctx.moveTo(w*.34,0);ctx.lineTo(w*.66,0);ctx.lineTo(w*.9,h);ctx.lineTo(w*.1,h);ctx.fill();
-      ctx.strokeStyle='#e6d8a5';ctx.lineWidth=4;ctx.setLineDash([28,24]);ctx.beginPath();ctx.moveTo(w*.5,0);ctx.lineTo(w*.5,h);ctx.stroke();ctx.setLineDash([]);
-      for(let i=0;i<12;i++){let yy=(i*100+(z*14)%100)%(h+40)-20;let xx=(i%2?w*.12:w*.88);ctx.fillStyle='#3e7849';ctx.beginPath();ctx.arc(xx,yy,18,0,7);ctx.fill()}
-      if(cam===0){
-        ctx.fillStyle='#d83b36';ctx.beginPath();ctx.moveTo(w*.5-42,h*.77);ctx.lineTo(w*.5-32,h*.65);ctx.lineTo(w*.5+32,h*.65);ctx.lineTo(w*.5+42,h*.77);ctx.closePath();ctx.fill();
-        ctx.fillStyle='#253d4c';ctx.fillRect(w*.5-25,h*.675,50,24);
-      }else{
-        ctx.fillStyle='#d83b36';ctx.fillRect(w*.5-65,h*.69,130,100);ctx.fillStyle='#263c4b';ctx.fillRect(w*.5-43,h*.71,86,28);ctx.fillStyle='#eee';ctx.fillRect(w*.5-53,h*.83,16,8);ctx.fillRect(w*.5+37,h*.83,16,8);
-      }
-      if(garage){
-        ctx.fillStyle='#071018eF';ctx.fillRect(0,0,w,h);ctx.fillStyle='white';ctx.font='bold 22px Tahoma';ctx.textAlign='center';ctx.fillText('گاراژ و نمایشگاه',w/2,65);ctx.font='16px Tahoma';ctx.fillText('موجودی: '+cash.toLocaleString('fa-IR')+' سکه',w/2,98);
-        cars.forEach((c,i)=>{let yy=145+i*76;ctx.fillStyle='#263744';ctx.fillRect(w*.12,yy,w*.76,62);ctx.fillStyle='white';ctx.fillText(c[0]+' — '+(c[1]===0?'رایگان':c[1].toLocaleString('fa-IR')+' سکه'),w/2,yy+25);ctx.fillStyle='#f2b544';ctx.fillText('برای خرید/انتخاب روی این ردیف بزن',w/2,yy+48)});
-        ctx.fillStyle='#f2b544';ctx.fillText('برای بازگشت، دکمه گاراژ را بزن',w/2,h-35);
-      }
-    }
-    cv.addEventListener('click',e=>{if(!garage)return;let i=Math.floor((e.clientY-145)/76);if(i>=0&&i<cars.length){let c=cars[i];if(cash>=c[1]){cash-=c[1];carName=c[0];document.getElementById('cash').textContent=cash.toLocaleString('fa-IR')}}});
-    function tick(t){let dt=Math.min(.04,(t-last)/1000||.016);last=t;if(!garage){if(keys['w']||keys['arrowup']||keys['shift'])speed=Math.min(34,speed+24*dt);else if(keys['s']||keys['arrowdown']||keys[' '])speed=Math.max(-8,speed-30*dt);else speed*=.97;if(keys['a']||keys['arrowleft'])angle-=dt;if(keys['d']||keys['arrowright'])angle+=dt;z+=speed*dt;x+=angle*speed*dt;}document.getElementById('speed').innerHTML=Math.round(Math.abs(speed)*3.6).toLocaleString('fa-IR')+' <small>KM/H</small>';draw();requestAnimationFrame(tick)}requestAnimationFrame(tick);
-    const note=document.createElement('div');note.style.cssText='position:fixed;top:112px;left:50%;transform:translateX(-50%);background:#152633dd;color:white;padding:8px 12px;border-radius:10px;font:12px Tahoma;z-index:9';note.textContent='حالت سازگار فعال شد؛ برای کنترل از دکمه‌های روی صفحه استفاده کن.';document.body.appendChild(note);
-  },3500);
+  // Never replace the Three.js scene with the old flat 2D canvas.
+  // If WebGL/module startup fails, show the actual error instead of a fake cube car.
+  let reported=false;
+  function show3DError(message){
+    if(reported || window.__CITY_DRIVE_READY__) return;
+    reported=true;
+    const note=document.createElement('div');
+    note.style.cssText='position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:28px;background:#101820;color:#fff;text-align:center;font:16px Tahoma;z-index:9999;line-height:2';
+    note.innerHTML='<div><b style="color:#f2b544;font-size:22px">اجرای سه‌بعدی ناموفق بود</b><p>نسخه دوبعدی و ماشین مکعبی دیگر جایگزین نمی‌شود.</p><p style="font-size:12px;color:#b8c6d0;direction:ltr;word-break:break-word"></p><button style="padding:12px 20px;border:0;border-radius:10px;background:#f2b544;font-weight:bold" onclick="location.reload()">تلاش دوباره</button></div>';
+    note.querySelector('p[style*="direction"]').textContent=String(message||'WebGL / Three.js initialization error').slice(0,220);
+    document.body.appendChild(note);
+  }
+  window.addEventListener('error',e=>{
+    if(e.message || (e.filename&&/\.js/.test(e.filename))) show3DError(e.message||'Module loading error');
+  });
+  window.addEventListener('unhandledrejection',e=>show3DError(e.reason?.message||e.reason||'Module loading error'));
+  setTimeout(()=>show3DError('Three.js module did not finish starting. Check the network or WebGL support.'),12000);
 })();
 </script>
 </body>
