@@ -75,12 +75,29 @@ const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-per
 scene.add(new THREE.HemisphereLight(0xe8f5ff,0x526047,2.35));
 const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(-35,75,30);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-90;sun.shadow.camera.right=90;sun.shadow.camera.top=90;sun.shadow.camera.bottom=-90;sun.shadow.bias=-0.00025;scene.add(sun);
 const mat=(color,roughness=.85)=>new THREE.MeshStandardMaterial({color,roughness});
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500),mat(0x56734e));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+function makeSurfaceTexture(kind){
+ const c=document.createElement('canvas');c.width=c.height=512;const q=c.getContext('2d');
+ q.fillStyle=kind==='grass'?'#526f45':'#343a3e';q.fillRect(0,0,512,512);
+ for(let i=0;i<15000;i++){
+  const x=Math.random()*512,y=Math.random()*512;
+  if(kind==='grass'){
+   q.strokeStyle=Math.random()>.5?'rgba(157,177,91,.22)':'rgba(25,49,27,.25)';
+   q.lineWidth=1;q.beginPath();q.moveTo(x,y);q.lineTo(x+Math.random()*3-1.5,y-2-Math.random()*5);q.stroke();
+  }else{
+   const v=70+Math.floor(Math.random()*55);q.fillStyle='rgba('+v+','+v+','+v+',.20)';q.fillRect(x,y,1+Math.random()*2,1+Math.random()*2);
+  }
+ }
+ const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.colorSpace=THREE.SRGBColorSpace;
+ t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());return t;
+}
+const grassTexture=makeSurfaceTexture('grass');grassTexture.repeat.set(55,55);
+const asphaltTexture=makeSurfaceTexture('road');asphaltTexture.repeat.set(38,2);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500),new THREE.MeshStandardMaterial({color:0xffffff,map:grassTexture,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 function box(w,h,d,color,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
 // roads in a simple city grid
 for(let i=-4;i<=4;i++){
- const road1=new THREE.Mesh(new THREE.PlaneGeometry(500,13),mat(0x303940));road1.rotation.x=-Math.PI/2;road1.position.set(0,.025,i*42);scene.add(road1);
- const road2=new THREE.Mesh(new THREE.PlaneGeometry(13,500),mat(0x303940));road2.rotation.x=-Math.PI/2;road2.position.set(i*42,.026,0);scene.add(road2);
+ const road1=new THREE.Mesh(new THREE.PlaneGeometry(500,13),new THREE.MeshStandardMaterial({color:0xffffff,map:asphaltTexture,roughness:.96}));road1.rotation.x=-Math.PI/2;road1.position.set(0,.025,i*42);scene.add(road1);
+ const road2=new THREE.Mesh(new THREE.PlaneGeometry(13,500),new THREE.MeshStandardMaterial({color:0xffffff,map:asphaltTexture,roughness:.96}));road2.rotation.x=-Math.PI/2;road2.position.set(i*42,.026,0);scene.add(road2);
  for(let n=-9;n<=9;n++){box(.22,.025,2.3,0xe5d9a5,n*5,.06,i*42);box(2.3,.025,.22,0xe5d9a5,i*42,.061,n*5)}
 }
 const buildingColors=[0xc5b8a5,0x8da3ad,0xd2c7b4,0x9dabb0,0xb4a08e];
@@ -107,7 +124,11 @@ for(let x=-5;x<=5;x++)for(let z=-5;z<=5;z++){
 for(let i=-8;i<=8;i++)for(const side of [-1,1]){
  const x=i*24,z=side*10;
  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.25,.35,2.2,7),mat(0x705038));trunk.position.set(x,1.1,z);scene.add(trunk);
- const crown=new THREE.Mesh(new THREE.SphereGeometry(1.8,8,7),mat(0x3e7849));crown.position.set(x,3,z);crown.castShadow=true;scene.add(crown);
+ const leafMat=mat(0x397b43,.92),leafLight=mat(0x4d914d,.9);
+ for(const [dx,dy,dz,r,material] of [[0,3.25,0,1.8,leafMat],[-.85,3.05,.18,1.25,leafLight],[.82,3.12,-.12,1.3,leafMat],[0,4.15,.05,1.18,leafLight]]){
+  const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(r,2),material);
+  crown.position.set(x+dx,dy,z+dz);crown.castShadow=true;crown.receiveShadow=true;scene.add(crown);
+ }
 }
 // car models
 const catalog=[
