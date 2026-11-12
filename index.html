@@ -160,8 +160,14 @@ for(let i=-8;i<=8;i++)for(const side of [-1,1]){
  pole.position.set(lx,3.4,lz);pole.castShadow=true;scene.add(pole);
  const arm=new THREE.Mesh(new THREE.BoxGeometry(.12,.12,1.25),mat(0x3d4548,.7));
  arm.position.set(lx,6.55,lz-side*.55);scene.add(arm);
- const lamp=new THREE.Mesh(new THREE.BoxGeometry(.48,.16,.65),new THREE.MeshStandardMaterial({color:0xffedc2,emissive:0xffd27a,emissiveIntensity:.55}));
+ const lamp=new THREE.Mesh(new THREE.BoxGeometry(.48,.16,.65),new THREE.MeshStandardMaterial({color:0xffedc2,emissive:0xffc45c,emissiveIntensity:2.2}));
  lamp.position.set(lx,6.45,lz-side*1.05);scene.add(lamp);
+ const bulb=new THREE.Mesh(new THREE.SphereGeometry(.13,10,8),new THREE.MeshBasicMaterial({color:0xffe3a0}));
+ bulb.position.set(lx,6.34,lz-side*1.05);scene.add(bulb);
+ if(i%2===0){
+  const glow=new THREE.PointLight(0xffc875,1.8,17,2);
+  glow.position.set(lx,6.15,lz-side*1.05);scene.add(glow);
+ }
 }
 // Low shrubs and planted green strips beside sidewalks.
 const shrubMat=mat(0x477c3d,.98),shrubLight=mat(0x65934a,.96);
