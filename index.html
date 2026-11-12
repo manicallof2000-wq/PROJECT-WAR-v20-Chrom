@@ -26,7 +26,7 @@
 .pad{display:grid;grid-template-columns:55px 55px;gap:8px;pointer-events:auto}
 .pad button,.pedals button{width:55px;height:55px;border:1px solid #ffffff50;border-radius:15px;background:#152633cc;color:white;font-size:20px;touch-action:none}
 .pedals{display:flex;gap:8px;align-items:end;pointer-events:auto}
-.pedals button{height:68px;background:#b87922cc}.pedals .brake{background:#8e3434cc}
+.pedals button{height:76px;min-width:72px;background:#198754;color:#fff;font-size:18px;font-weight:900;box-shadow:0 4px 0 #105c38}.pedals .brake{background:#8e3434cc;box-shadow:0 4px 0 #5e2222}
 @media(max-width:700px){#mobile{display:flex}#hint{bottom:104px}#stats{top:70px;left:10px}#brand{top:10px;right:10px}}
 </style>
 </head>
@@ -35,12 +35,12 @@
 <div id="hud">
  <div id="brand" class="panel">CITY DRIVE <span style="color:#f2b544">۳بعدی</span></div>
  <div id="stats"><div id="speed" class="panel">۰ <small>KM/H</small></div><button id="cameraBtn">تغییر دوربین</button><button id="garageBtn">گاراژ</button></div>
- <div id="hint" class="panel">حرکت: WASD یا کلیدهای جهت‌دار · دوربین: C · گاراژ: G</div>
+ <div id="hint" class="panel">گاز: W یا دکمه سبز · ترمز: Space · فرمان: A/D · دوربین: C</div>
  <div id="garage"><div id="garageCard"><button id="closeGarage">بستن ✕</button><h2>گاراژ و نمایشگاه</h2><p>موجودی: <b id="cash">۵۰۰۰۰</b> سکه</p><div id="cars"></div><p style="font-size:12px;color:#b8c6d0">خرید ماشین جدید یا فروش ماشین فعلی. پیشرفت روی همین دستگاه ذخیره می‌شود.</p></div></div>
 </div>
 <div id="mobile">
  <div class="pad"><button data-key="ArrowLeft">◀</button><button data-key="ArrowUp">▲</button><button data-key="ArrowRight">▶</button><button data-key="ArrowDown">▼</button></div>
- <div class="pedals"><button class="brake" data-key=" ">ترمز</button><button data-key="Shift">گاز</button></div>
+ <div class="pedals"><button class="brake" data-key=" ">ترمز</button><button data-key="w">گاز ▲</button></div>
 </div>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js"}}
