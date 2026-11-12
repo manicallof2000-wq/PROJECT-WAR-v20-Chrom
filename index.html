@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#101820">
+<title>City Drive — خرید و فروش ماشین</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101820;color:#fff;font-family:Tahoma,Arial,sans-serif}
+#game{position:fixed;inset:0}canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none}
+.panel{background:#101820d9;border:1px solid #ffffff25;border-radius:14px;padding:10px 14px;backdrop-filter:blur(8px)}
+#brand{position:absolute;top:14px;right:14px;font-weight:800;letter-spacing:.5px}
+#stats{position:absolute;top:14px;left:14px;display:flex;gap:8px;align-items:center}
+#speed{font-size:25px;font-weight:900;min-width:95px;text-align:center}
+#speed small{font-size:11px;color:#b7c7d4}
+#garageBtn,#cameraBtn,#sellBtn,#buyBtn{pointer-events:auto;border:0;border-radius:10px;padding:10px 13px;background:#f2b544;color:#17212a;font-weight:800}
+#garage{display:none;pointer-events:auto;position:absolute;inset:0;background:#071018d9;align-items:center;justify-content:center;padding:16px}
+#garageCard{width:min(560px,100%);max-height:85%;overflow:auto;background:#17232d;border:1px solid #ffffff25;border-radius:18px;padding:18px}
+#garageCard h2{margin:0 0 8px}#cars{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:14px 0}
+.carCard{background:#263744;border-radius:12px;padding:12px;border:1px solid #ffffff20}
+.carCard button{width:100%;margin-top:8px;padding:9px;border:0;border-radius:8px;font-weight:bold;background:#f2b544}
+#closeGarage{float:left;background:#344653;color:white;border:0;border-radius:8px;padding:8px 12px}
+#hint{position:absolute;bottom:15px;left:50%;transform:translateX(-50%);font-size:12px;color:#e6edf2;text-align:center;white-space:nowrap}
+#mobile{position:fixed;bottom:24px;left:18px;right:18px;display:none;justify-content:space-between;pointer-events:none}
+.pad{display:grid;grid-template-columns:55px 55px;gap:8px;pointer-events:auto}
+.pad button,.pedals button{width:55px;height:55px;border:1px solid #ffffff50;border-radius:15px;background:#152633cc;color:white;font-size:20px;touch-action:none}
+.pedals{display:flex;gap:8px;align-items:end;pointer-events:auto}
+.pedals button{height:68px;background:#b87922cc}.pedals .brake{background:#8e3434cc}
+@media(max-width:700px){#mobile{display:flex}#hint{bottom:104px}#stats{top:70px;left:10px}#brand{top:10px;right:10px}}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="hud">
+ <div id="brand" class="panel">CITY DRIVE <span style="color:#f2b544">۳بعدی</span></div>
+ <div id="stats"><div id="speed" class="panel">۰ <small>KM/H</small></div><button id="cameraBtn">تغییر دوربین</button><button id="garageBtn">گاراژ</button></div>
+ <div id="hint" class="panel">حرکت: WASD یا کلیدهای جهت‌دار · دوربین: C · گاراژ: G</div>
+ <div id="garage"><div id="garageCard"><button id="closeGarage">بستن ✕</button><h2>گاراژ و نمایشگاه</h2><p>موجودی: <b id="cash">۵۰۰۰۰</b> سکه</p><div id="cars"></div><p style="font-size:12px;color:#b8c6d0">خرید ماشین جدید یا فروش ماشین فعلی. پیشرفت روی همین دستگاه ذخیره می‌شود.</p></div></div>
+</div>
+<div id="mobile">
+ <div class="pad"><button data-key="ArrowLeft">◀</button><button data-key="ArrowUp">▲</button><button data-key="ArrowRight">▶</button><button data-key="ArrowDown">▼</button></div>
+ <div class="pedals"><button class="brake" data-key=" ">ترمز</button><button data-key="Shift">گاز</button></div>
+</div>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+const root=document.querySelector('#game');
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x9cc7dc);scene.fog=new THREE.Fog(0x9cc7dc,75,230);
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,500);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;root.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xe8f5ff,0x58634c,2));
+const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(-35,65,30);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);scene.add(sun);
+const mat=(color,roughness=.85)=>new THREE.MeshStandardMaterial({color,roughness});
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500),mat(0x56734e));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+function box(w,h,d,color,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
+// roads in a simple city grid
+for(let i=-4;i<=4;i++){
+ const road1=new THREE.Mesh(new THREE.PlaneGeometry(500,13),mat(0x303940));road1.rotation.x=-Math.PI/2;road1.position.set(0,.025,i*42);scene.add(road1);
+ const road2=new THREE.Mesh(new THREE.PlaneGeometry(13,500),mat(0x303940));road2.rotation.x=-Math.PI/2;road2.position.set(i*42,.026,0);scene.add(road2);
+ for(let n=-9;n<=9;n++){box(.22,.025,2.3,0xe5d9a5,n*5,.06,i*42);box(2.3,.025,.22,0xe5d9a5,i*42,.061,n*5)}
+}
+const buildingColors=[0xc5b8a5,0x8da3ad,0xd2c7b4,0x9dabb0,0xb4a08e];
+for(let x=-5;x<=5;x++)for(let z=-5;z<=5;z++){
+ if(Math.abs(x*42)<12||Math.abs(z*42)<12)continue;
+ const h=8+Math.random()*25,w=13+Math.random()*7,d=13+Math.random()*7;
+ const b=box(w,h,d,buildingColors[Math.floor(Math.random()*buildingColors.length)],x*42+(Math.random()-.5)*7,h/2,z*42+(Math.random()-.5)*7);
+ b.material=mat(b.material.color,.95);
+}
+// trees and street lamps
+for(let i=-8;i<=8;i++)for(const side of [-1,1]){
+ const x=i*24,z=side*10;
+ const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.25,.35,2.2,7),mat(0x705038));trunk.position.set(x,1.1,z);scene.add(trunk);
+ const crown=new THREE.Mesh(new THREE.SphereGeometry(1.8,8,7),mat(0x3e7849));crown.position.set(x,3,z);crown.castShadow=true;scene.add(crown);
+}
+// car models
+const catalog=[
+ {name:'هاچ‌بک شهری',price:0,color:0xd83b36,speed:25},
+ {name:'کوپه اسپرت',price:12000,color:0x2878d0,speed:34},
+ {name:'سوپر اسپرت',price:30000,color:0xe7b52e,speed:43},
+ {name:'آفرود',price:22000,color:0x57905b,speed:29}
+];
+function makeCar(def){
+ const g=new THREE.Group();
+ const body=new THREE.Mesh(new THREE.BoxGeometry(2.15,.65,4.1),mat(def.color,.42));body.position.y=.85;body.castShadow=true;g.add(body);
+ const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.65,.72,1.9),new THREE.MeshStandardMaterial({color:0x263c4b,metalness:.25,roughness:.22}));cabin.position.set(0,1.48,-.25);cabin.castShadow=true;g.add(cabin);
+ const hood=new THREE.Mesh(new THREE.BoxGeometry(1.8,.16,.8),mat(0x202a30,.4));hood.position.set(0,1.16,1.35);g.add(hood);
+ for(const x of [-1.08,1.08])for(const z of [-1.35,1.35]){
+  const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.43,.43,.28,16),mat(0x17191b,.9));wheel.rotation.z=Math.PI/2;wheel.position.set(x,.48,z);wheel.castShadow=true;g.add(wheel);
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(.19,.19,.3,12),mat(0x9da7ad,.35));hub.rotation.z=Math.PI/2;hub.position.copy(wheel.position);g.add(hub);
+ }
+ for(const x of [-.68,.68]){const lamp=new THREE.Mesh(new THREE.BoxGeometry(.42,.18,.08),mat(0xfff1c2));lamp.position.set(x,.93,2.06);g.add(lamp)}
+ return g;
+}
+let owned=[0],selected=0,cash=50000,car=makeCar(catalog[0]);scene.add(car);car.position.set(0,0,4);
+const keys={};let velocity=0,steer=0,cameraMode=0,garageOpen=false;
+const speedEl=document.querySelector('#speed');
+function updateGarage(){
+ document.querySelector('#cash').textContent=Math.floor(cash).toLocaleString('fa-IR');
+ const list=document.querySelector('#cars');list.innerHTML='';
+ catalog.forEach((c,i)=>{const own=owned.includes(i);const el=document.createElement('div');el.className='carCard';el.innerHTML='<b>'+c.name+'</b><p>قدرت: '+c.speed+'</p><p>'+ (own?'خریداری شده':c.price.toLocaleString('fa-IR')+' سکه')+'</p><button>'+(own?(selected===i?'ماشین فعلی':'انتخاب'):'خرید')+'</button>';el.querySelector('button').onclick=()=>{if(own){selected=i;scene.remove(car);car=makeCar(catalog[i]);scene.add(car);car.position.set(0,0,4);velocity=0;updateGarage()}else if(cash>=c.price){cash-=c.price;owned.push(i);selected=i;scene.remove(car);car=makeCar(catalog[i]);scene.add(car);car.position.set(0,0,4);updateGarage()}else alert('سکه کافی نداری!')};list.appendChild(el)});
+ const sell=document.createElement('button');sell.id='sellBtn';sell.textContent='فروش ماشین فعلی';sell.style.marginTop='8px';sell.onclick=()=>{if(owned.length<=1){alert('حداقل یک ماشین باید داشته باشی.');return}cash+=Math.floor(catalog[selected].price*.7)||3500;owned=owned.filter(v=>v!==selected);selected=owned[0];scene.remove(car);car=makeCar(catalog[selected]);scene.add(car);car.position.set(0,0,4);velocity=0;updateGarage()};list.appendChild(sell);
+}
+function setGarage(v){garageOpen=v;document.querySelector('#garage').style.display=v?'flex':'none';if(v)updateGarage()}
+document.querySelector('#garageBtn').onclick=()=>setGarage(true);document.querySelector('#closeGarage').onclick=()=>setGarage(false);
+document.querySelector('#cameraBtn').onclick=()=>{cameraMode=(cameraMode+1)%2};
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key.toLowerCase()==='c')cameraMode=(cameraMode+1)%2;if(e.key.toLowerCase()==='g')setGarage(!garageOpen)});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+document.querySelectorAll('[data-key]').forEach(btn=>{
+ const k=btn.dataset.key.toLowerCase();
+ btn.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true;btn.setPointerCapture(e.pointerId)});
+ ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,()=>keys[k]=false));
+});
+const clock=new THREE.Clock();
+function loop(){
+ requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.04);
+ if(!garageOpen){
+  const forward=keys['w']||keys['arrowup']||keys['shift'];
+  const back=keys['s']||keys['arrowdown']||keys[' '];
+  const left=keys['a']||keys['arrowleft'],right=keys['d']||keys['arrowright'];
+  const max=catalog[selected].speed;
+  if(forward)velocity=Math.min(max,velocity+22*dt);else if(back)velocity=Math.max(-max*.38,velocity-30*dt);else velocity*=Math.pow(.965,dt*60);
+  steer=(right?1:0)-(left?1:0);
+  if(Math.abs(velocity)>.25)car.rotation.y-=steer*dt*1.65*Math.sign(velocity)*Math.min(1,Math.abs(velocity)/8);
+  car.position.x+=Math.sin(car.rotation.y)*velocity*dt;
+  car.position.z+=Math.cos(car.rotation.y)*velocity*dt;
+  // keep the vehicle within the playable city bounds
+  car.position.x=THREE.MathUtils.clamp(car.position.x,-225,225);car.position.z=THREE.MathUtils.clamp(car.position.z,-225,225);
+ }
+ const km=Math.round(Math.abs(velocity)*3.6);speedEl.innerHTML=km.toLocaleString('fa-IR')+' <small>KM/H</small>';
+ if(cameraMode===0){
+  const offset=new THREE.Vector3(0,5.1,-10).applyAxisAngle(new THREE.Vector3(0,1,0),car.rotation.y);
+  const target=car.position.clone().add(offset);camera.position.lerp(target,1-Math.pow(.001,dt));camera.lookAt(car.position.x,car.position.y+1.1,car.position.z);
+ }else{
+  const pos=new THREE.Vector3(0,2.05,.25).applyAxisAngle(new THREE.Vector3(0,1,0),car.rotation.y).add(car.position);
+  camera.position.lerp(pos,.3);const dir=new THREE.Vector3(Math.sin(car.rotation.y),-.02,Math.cos(car.rotation.y));camera.lookAt(pos.clone().add(dir.multiplyScalar(10)));
+ }
+ renderer.render(scene,camera);
+}
+loop();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script>
+</body>
+</html>
