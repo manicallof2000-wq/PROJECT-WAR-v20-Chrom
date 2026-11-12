@@ -92,32 +92,35 @@ function makeSurfaceTexture(kind){
 }
 const grassTexture=makeSurfaceTexture('grass');grassTexture.repeat.set(55,55);
 const asphaltTexture=makeSurfaceTexture('road');asphaltTexture.repeat.set(38,2);
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500),new THREE.MeshStandardMaterial({color:0xffffff,map:grassTexture,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+const ground=new THREE.Mesh(new THREE.CircleGeometry(220,160),new THREE.MeshStandardMaterial({color:0xffffff,map:grassTexture,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 function box(w,h,d,color,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
-// roads in a simple city grid
-for(let i=-4;i<=4;i++){
- const road1=new THREE.Mesh(new THREE.PlaneGeometry(500,13),new THREE.MeshStandardMaterial({color:0xffffff,map:asphaltTexture,roughness:.96}));road1.rotation.x=-Math.PI/2;road1.position.set(0,.025,i*42);scene.add(road1);
- const road2=new THREE.Mesh(new THREE.PlaneGeometry(13,500),new THREE.MeshStandardMaterial({color:0xffffff,map:asphaltTexture,roughness:.96}));road2.rotation.x=-Math.PI/2;road2.position.set(i*42,.026,0);scene.add(road2);
+// Circular driving island with a defined outer shoreline.
+const water=new THREE.Mesh(new THREE.CircleGeometry(260,160),new THREE.MeshStandardMaterial({color:0x397f9b,roughness:.72}));water.rotation.x=-Math.PI/2;water.position.y=-.32;scene.add(water);
+const boundary=new THREE.Mesh(new THREE.TorusGeometry(218.5,1.25,10,180),mat(0xb6b9b0,.88));boundary.rotation.x=-Math.PI/2;boundary.position.y=.12;boundary.receiveShadow=true;scene.add(boundary);
+// roads in a compact grid contained inside the circular island
+for(let i=-3;i<=3;i++){
+ const road1=new THREE.Mesh(new THREE.PlaneGeometry(355,13),new THREE.MeshStandardMaterial({color:0xffffff,map:asphaltTexture,roughness:.96}));road1.rotation.x=-Math.PI/2;road1.position.set(0,.025,i*42);scene.add(road1);
+ const road2=new THREE.Mesh(new THREE.PlaneGeometry(13,355),new THREE.MeshStandardMaterial({color:0xffffff,map:asphaltTexture,roughness:.96}));road2.rotation.x=-Math.PI/2;road2.position.set(i*42,.026,0);scene.add(road2);
  for(let n=-9;n<=9;n++){box(.22,.025,2.3,0xe5d9a5,n*5,.06,i*42);box(2.3,.025,.22,0xe5d9a5,i*42,.061,n*5)}
  // Raised concrete sidewalks and curb strips along both sides of each avenue.
  for(const side of [-1,1]){
-  const walkA=new THREE.Mesh(new THREE.PlaneGeometry(500,1.5),mat(0xaaaead,.98));
+  const walkA=new THREE.Mesh(new THREE.PlaneGeometry(355,1.5),mat(0xaaaead,.98));
   walkA.rotation.x=-Math.PI/2;walkA.position.set(0,.09,i*42+side*7.45);scene.add(walkA);
-  const curbA=new THREE.Mesh(new THREE.BoxGeometry(500,.22,.18),mat(0xd0d0c8,.9));
+  const curbA=new THREE.Mesh(new THREE.BoxGeometry(355,.22,.18),mat(0xd0d0c8,.9));
   curbA.position.set(0,.13,i*42+side*6.65);scene.add(curbA);
-  const walkB=new THREE.Mesh(new THREE.PlaneGeometry(1.5,500),mat(0xaaaead,.98));
+  const walkB=new THREE.Mesh(new THREE.PlaneGeometry(1.5,355),mat(0xaaaead,.98));
   walkB.rotation.x=-Math.PI/2;walkB.position.set(i*42+side*7.45,.091,0);scene.add(walkB);
-  const curbB=new THREE.Mesh(new THREE.BoxGeometry(.18,.22,500),mat(0xd0d0c8,.9));
+  const curbB=new THREE.Mesh(new THREE.BoxGeometry(.18,.22,355),mat(0xd0d0c8,.9));
   curbB.position.set(i*42+side*6.65,.13,0);scene.add(curbB);
  }
 }
 // Buildings removed: keep the city open with roads, sidewalks, trees and street lights.
 // Road edge lines and pedestrian crossings at city intersections.
 const lineMat=new THREE.MeshBasicMaterial({color:0xe6e0c8});
-for(let i=-4;i<=4;i++){
+for(let i=-3;i<=3;i++){
  for(const side of [-1,1]){
-  const edgeA=new THREE.Mesh(new THREE.PlaneGeometry(500,.13),lineMat);edgeA.rotation.x=-Math.PI/2;edgeA.position.set(0,.075,i*42+side*6.1);scene.add(edgeA);
-  const edgeB=new THREE.Mesh(new THREE.PlaneGeometry(.13,500),lineMat);edgeB.rotation.x=-Math.PI/2;edgeB.position.set(i*42+side*6.1,.076,0);scene.add(edgeB);
+  const edgeA=new THREE.Mesh(new THREE.PlaneGeometry(355,.13),lineMat);edgeA.rotation.x=-Math.PI/2;edgeA.position.set(0,.075,i*42+side*6.1);scene.add(edgeA);
+  const edgeB=new THREE.Mesh(new THREE.PlaneGeometry(.13,355),lineMat);edgeB.rotation.x=-Math.PI/2;edgeB.position.set(i*42+side*6.1,.076,0);scene.add(edgeB);
  }
  for(let k=-3;k<=3;k++){
   const stripeA=new THREE.Mesh(new THREE.PlaneGeometry(1.15,5.5),lineMat);stripeA.rotation.x=-Math.PI/2;stripeA.position.set(i*42+k*1.65,.08,i*42+7.1);scene.add(stripeA);
