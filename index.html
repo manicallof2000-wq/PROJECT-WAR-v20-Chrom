@@ -69,11 +69,11 @@
 <script type="module">
 import * as THREE from 'three';
 const root=document.querySelector('#game');
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x9cc7dc);scene.fog=new THREE.Fog(0x9cc7dc,75,230);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x87c8ee);scene.fog=new THREE.Fog(0x9fc9d8,115,330);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,500);
-const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;root.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xe8f5ff,0x58634c,2));
-const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(-35,65,30);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);scene.add(sun);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;root.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xe8f5ff,0x526047,2.35));
+const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(-35,75,30);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-90;sun.shadow.camera.right=90;sun.shadow.camera.top=90;sun.shadow.camera.bottom=-90;sun.shadow.bias=-0.00025;scene.add(sun);
 const mat=(color,roughness=.85)=>new THREE.MeshStandardMaterial({color,roughness});
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500),mat(0x56734e));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 function box(w,h,d,color,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
@@ -87,8 +87,21 @@ const buildingColors=[0xc5b8a5,0x8da3ad,0xd2c7b4,0x9dabb0,0xb4a08e];
 for(let x=-5;x<=5;x++)for(let z=-5;z<=5;z++){
  if(Math.abs(x*42)<12||Math.abs(z*42)<12)continue;
  const h=8+Math.random()*25,w=13+Math.random()*7,d=13+Math.random()*7;
- const b=box(w,h,d,buildingColors[Math.floor(Math.random()*buildingColors.length)],x*42+(Math.random()-.5)*7,h/2,z*42+(Math.random()-.5)*7);
- b.material=mat(b.material.color,.95);
+ const bx=x*42+(Math.random()-.5)*7,bz=z*42+(Math.random()-.5)*7;
+ const b=box(w,h,d,buildingColors[Math.floor(Math.random()*buildingColors.length)],bx,h/2,bz);
+ b.material=mat(b.material.color,.88);
+ // Repeating glass windows give the city blocks more depth and scale.
+ const glass=mat(0x8fc4d5,.28),frame=mat(0x59666b,.8);
+ for(let yy=2.2;yy<h-1.5;yy+=3.1){
+  for(let xx=-w/2+1.5;xx<w/2-1;xx+=3.2){
+   for(const side of [-1,1]){
+    const win=new THREE.Mesh(new THREE.BoxGeometry(1.35,1.45,.055),glass);
+    win.position.set(bx+xx,yy,bz+side*(d/2+.035));scene.add(win);
+    const sill=new THREE.Mesh(new THREE.BoxGeometry(1.5,.09,.12),frame);
+    sill.position.set(bx+xx,yy-.78,bz+side*(d/2+.07));scene.add(sill);
+   }
+  }
+ }
 }
 // trees and street lamps
 for(let i=-8;i<=8;i++)for(const side of [-1,1]){
@@ -107,7 +120,20 @@ function makeCar(def){
  const g=new THREE.Group();
  const body=new THREE.Mesh(new THREE.BoxGeometry(2.15,.65,4.1),mat(def.color,.42));body.position.y=.85;body.castShadow=true;g.add(body);
  const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.65,.72,1.9),new THREE.MeshStandardMaterial({color:0x263c4b,metalness:.25,roughness:.22}));cabin.position.set(0,1.48,-.25);cabin.castShadow=true;g.add(cabin);
- const hood=new THREE.Mesh(new THREE.BoxGeometry(1.8,.16,.8),mat(0x202a30,.4));hood.position.set(0,1.16,1.35);g.add(hood);
+ const hood=new THREE.Mesh(new THREE.BoxGeometry(1.86,.13,.88),mat(def.color,.32));hood.position.set(0,1.17,1.35);g.add(hood);
+ // Front/rear bumpers, grille, glass and lighting details.
+ const bumperMat=mat(0x20282d,.42),chrome=mat(0xb8c4c9,.28),glassMat=new THREE.MeshStandardMaterial({color:0x8eb9c8,metalness:.35,roughness:.16});
+ const frontBumper=new THREE.Mesh(new THREE.BoxGeometry(2.12,.22,.18),bumperMat);frontBumper.position.set(0,.55,2.08);g.add(frontBumper);
+ const rearBumper=new THREE.Mesh(new THREE.BoxGeometry(2.12,.22,.18),bumperMat);rearBumper.position.set(0,.55,-2.08);g.add(rearBumper);
+ const grille=new THREE.Mesh(new THREE.BoxGeometry(.82,.2,.045),chrome);grille.position.set(0,.83,2.17);g.add(grille);
+ for(const x of [-.68,.68]){
+  const head=new THREE.Mesh(new THREE.BoxGeometry(.48,.2,.08),new THREE.MeshStandardMaterial({color:0xfff2c4,emissive:0x66552a,roughness:.2}));
+  head.position.set(x,1.02,2.12);g.add(head);
+  const tail=new THREE.Mesh(new THREE.BoxGeometry(.48,.22,.08),new THREE.MeshStandardMaterial({color:0xe52e28,emissive:0x64100d,roughness:.3}));
+  tail.position.set(x,.98,-2.12);g.add(tail);
+ }
+ const windshield=new THREE.Mesh(new THREE.BoxGeometry(1.48,.52,.045),glassMat);windshield.position.set(0,1.48,.73);windshield.rotation.x=-.28;g.add(windshield);
+ const rearGlass=new THREE.Mesh(new THREE.BoxGeometry(1.42,.48,.045),glassMat);rearGlass.position.set(0,1.48,-1.22);rearGlass.rotation.x=.28;g.add(rearGlass);
  for(const x of [-1.08,1.08])for(const z of [-1.35,1.35]){
   const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.43,.43,.28,16),mat(0x17191b,.9));wheel.rotation.z=Math.PI/2;wheel.position.set(x,.48,z);wheel.castShadow=true;g.add(wheel);
   const hub=new THREE.Mesh(new THREE.CylinderGeometry(.19,.19,.3,12),mat(0x9da7ad,.35));hub.rotation.z=Math.PI/2;hub.position.copy(wheel.position);g.add(hub);
