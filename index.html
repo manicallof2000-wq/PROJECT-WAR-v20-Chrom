@@ -180,7 +180,7 @@ const catalog=[
  {name:'آفرود',price:22000,color:0x57905b,speed:29}
 ];
 function makeCar(def){
- const g=new THREE.Group();
+ const g=new THREE.Group();g.userData.wheels=[];
  const paint=new THREE.MeshStandardMaterial({color:def.color,metalness:.48,roughness:.27});
  const dark=mat(0x171c20,.5),rubber=mat(0x101214,.96),chrome=mat(0xb7c4ca,.22);
  const glass=new THREE.MeshStandardMaterial({color:0x244454,metalness:.48,roughness:.16});
@@ -216,7 +216,7 @@ function makeCar(def){
  }
  // Four detailed wheels with alloy rims and hub caps.
  for(const side of [-1,1])for(const z of [-1.35,1.35]){
-  part(new THREE.CylinderGeometry(.45,.45,.3,28),rubber,side*1.04,.48,z,0,0,Math.PI/2);
+  const tire=part(new THREE.CylinderGeometry(.45,.45,.3,28),rubber,side*1.04,.48,z,0,0,Math.PI/2);g.userData.wheels.push(tire);
   part(new THREE.CylinderGeometry(.27,.27,.315,24),chrome,side*1.04,.48,z,0,0,Math.PI/2);
   part(new THREE.CylinderGeometry(.12,.12,.33,20),dark,side*1.04,.48,z,0,0,Math.PI/2);
   for(let a=0;a<5;a++){
@@ -258,6 +258,7 @@ function loop(){
   if(forward)velocity=Math.min(max,velocity+22*dt);else if(back)velocity=Math.max(-max*.38,velocity-30*dt);else velocity*=Math.pow(.965,dt*60);
   steer=(right?1:0)-(left?1:0);
   if(Math.abs(velocity)>.25)car.rotation.y-=steer*dt*1.65*Math.sign(velocity)*Math.min(1,Math.abs(velocity)/8);
+  if(car.userData.wheels)car.userData.wheels.forEach(w=>{w.rotation.x+=velocity*dt*1.8;});
   car.position.x+=Math.sin(car.rotation.y)*velocity*dt;
   car.position.z+=Math.cos(car.rotation.y)*velocity*dt;
   // keep the vehicle within the playable city bounds
