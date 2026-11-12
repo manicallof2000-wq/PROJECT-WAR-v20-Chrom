@@ -99,6 +99,17 @@ for(let i=-4;i<=4;i++){
  const road1=new THREE.Mesh(new THREE.PlaneGeometry(500,13),new THREE.MeshStandardMaterial({color:0xffffff,map:asphaltTexture,roughness:.96}));road1.rotation.x=-Math.PI/2;road1.position.set(0,.025,i*42);scene.add(road1);
  const road2=new THREE.Mesh(new THREE.PlaneGeometry(13,500),new THREE.MeshStandardMaterial({color:0xffffff,map:asphaltTexture,roughness:.96}));road2.rotation.x=-Math.PI/2;road2.position.set(i*42,.026,0);scene.add(road2);
  for(let n=-9;n<=9;n++){box(.22,.025,2.3,0xe5d9a5,n*5,.06,i*42);box(2.3,.025,.22,0xe5d9a5,i*42,.061,n*5)}
+ // Raised concrete sidewalks and curb strips along both sides of each avenue.
+ for(const side of [-1,1]){
+  const walkA=new THREE.Mesh(new THREE.PlaneGeometry(500,1.5),mat(0xaaaead,.98));
+  walkA.rotation.x=-Math.PI/2;walkA.position.set(0,.09,i*42+side*7.45);scene.add(walkA);
+  const curbA=new THREE.Mesh(new THREE.BoxGeometry(500,.22,.18),mat(0xd0d0c8,.9));
+  curbA.position.set(0,.13,i*42+side*6.65);scene.add(curbA);
+  const walkB=new THREE.Mesh(new THREE.PlaneGeometry(1.5,500),mat(0xaaaead,.98));
+  walkB.rotation.x=-Math.PI/2;walkB.position.set(i*42+side*7.45,.091,0);scene.add(walkB);
+  const curbB=new THREE.Mesh(new THREE.BoxGeometry(.18,.22,500),mat(0xd0d0c8,.9));
+  curbB.position.set(i*42+side*6.65,.13,0);scene.add(curbB);
+ }
 }
 const buildingColors=[0xc5b8a5,0x8da3ad,0xd2c7b4,0x9dabb0,0xb4a08e];
 for(let x=-5;x<=5;x++)for(let z=-5;z<=5;z++){
