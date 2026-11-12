@@ -141,6 +141,16 @@ for(let i=-8;i<=8;i++)for(const side of [-1,1]){
   crown.position.set(x+dx,dy,z+dz);crown.castShadow=true;crown.receiveShadow=true;scene.add(crown);
  }
 }
+// Detailed street lamps along the avenues.
+for(let i=-8;i<=8;i++)for(const side of [-1,1]){
+ const lx=i*24+side*5.8,lz=side*11.8;
+ const pole=new THREE.Mesh(new THREE.CylinderGeometry(.07,.11,6.8,10),mat(0x3d4548,.7));
+ pole.position.set(lx,3.4,lz);pole.castShadow=true;scene.add(pole);
+ const arm=new THREE.Mesh(new THREE.BoxGeometry(.12,.12,1.25),mat(0x3d4548,.7));
+ arm.position.set(lx,6.55,lz-side*.55);scene.add(arm);
+ const lamp=new THREE.Mesh(new THREE.BoxGeometry(.48,.16,.65),new THREE.MeshStandardMaterial({color:0xffedc2,emissive:0xffd27a,emissiveIntensity:.55}));
+ lamp.position.set(lx,6.45,lz-side*1.05);scene.add(lamp);
+}
 // car models
 const catalog=[
  {name:'هاچ‌بک شهری',price:0,color:0xd83b36,speed:25},
