@@ -272,16 +272,16 @@ function loop(){
   const max=catalog[selected].speed;
   if(forward)velocity=Math.min(max,velocity+22*dt);else if(back)velocity=Math.max(-max*.38,velocity-30*dt);else velocity*=Math.pow(.965,dt*60);
   steer=(right?1:0)-(left?1:0);
-  if(Math.abs(velocity)>.25)car.rotation.y-=steer*dt*1.65*Math.sign(velocity)*Math.min(1,Math.abs(velocity)/8);
+  if(Math.abs(velocity)>.25)car.rotation.y+=steer*dt*1.65*Math.sign(velocity)*Math.min(1,Math.abs(velocity)/8);
   if(car.userData.wheels)car.userData.wheels.forEach(w=>{w.rotation.x+=velocity*dt*1.8;});
-  car.position.x+=Math.sin(car.rotation.y)*velocity*dt;
-  car.position.z+=Math.cos(car.rotation.y)*velocity*dt;
+  car.position.x-=Math.sin(car.rotation.y)*velocity*dt;
+  car.position.z-=Math.cos(car.rotation.y)*velocity*dt;
   // keep the vehicle within the playable city bounds
   car.position.x=THREE.MathUtils.clamp(car.position.x,-225,225);car.position.z=THREE.MathUtils.clamp(car.position.z,-225,225);
  }
  const km=Math.round(Math.abs(velocity)*3.6);speedEl.innerHTML=km.toLocaleString('fa-IR')+' <small>KM/H</small>';
  if(cameraMode===0){
-  const offset=new THREE.Vector3(0,5.1,-10).applyAxisAngle(new THREE.Vector3(0,1,0),car.rotation.y);
+  const offset=new THREE.Vector3(0,5.1,10).applyAxisAngle(new THREE.Vector3(0,1,0),car.rotation.y);
   const target=car.position.clone().add(offset);camera.position.lerp(target,1-Math.pow(.001,dt));camera.lookAt(car.position.x,car.position.y+1.1,car.position.z);
  }else{
   const pos=new THREE.Vector3(0,2.05,.25).applyAxisAngle(new THREE.Vector3(0,1,0),car.rotation.y).add(car.position);
