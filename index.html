@@ -233,7 +233,8 @@ function makeCar(def){
   let bounds=new THREE.Box3().setFromObject(model);
   let dimensions=bounds.getSize(new THREE.Vector3());
   if(dimensions.x>dimensions.z){model.rotation.y=Math.PI/2;}
-  model.rotation.y+=Math.PI;\n  bounds.setFromObject(model);dimensions=bounds.getSize(new THREE.Vector3());
+  model.rotation.y+=Math.PI;
+  bounds.setFromObject(model);dimensions=bounds.getSize(new THREE.Vector3());
   if(!dimensions.x||!dimensions.y||!dimensions.z)throw new Error('Invalid vehicle model bounds');
   model.scale.set(2.05/dimensions.x,1.38/dimensions.y,4.2/dimensions.z);
   bounds.setFromObject(model);const center=bounds.getCenter(new THREE.Vector3());
