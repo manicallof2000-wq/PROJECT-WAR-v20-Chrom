@@ -111,26 +111,7 @@ for(let i=-4;i<=4;i++){
   curbB.position.set(i*42+side*6.65,.13,0);scene.add(curbB);
  }
 }
-const buildingColors=[0xc5b8a5,0x8da3ad,0xd2c7b4,0x9dabb0,0xb4a08e];
-for(let x=-5;x<=5;x++)for(let z=-5;z<=5;z++){
- if(Math.abs(x*42)<12||Math.abs(z*42)<12)continue;
- const h=8+Math.random()*25,w=13+Math.random()*7,d=13+Math.random()*7;
- const bx=x*42+(Math.random()-.5)*7,bz=z*42+(Math.random()-.5)*7;
- const b=box(w,h,d,buildingColors[Math.floor(Math.random()*buildingColors.length)],bx,h/2,bz);
- b.material=mat(b.material.color,.88);
- // Repeating glass windows give the city blocks more depth and scale.
- const glass=mat(0x8fc4d5,.28),frame=mat(0x59666b,.8);
- for(let yy=2.2;yy<h-1.5;yy+=3.1){
-  for(let xx=-w/2+1.5;xx<w/2-1;xx+=3.2){
-   for(const side of [-1,1]){
-    const win=new THREE.Mesh(new THREE.BoxGeometry(1.35,1.45,.055),glass);
-    win.position.set(bx+xx,yy,bz+side*(d/2+.035));scene.add(win);
-    const sill=new THREE.Mesh(new THREE.BoxGeometry(1.5,.09,.12),frame);
-    sill.position.set(bx+xx,yy-.78,bz+side*(d/2+.07));scene.add(sill);
-   }
-  }
- }
-}
+// Buildings removed: keep the city open with roads, sidewalks, trees and street lights.
 // Road edge lines and pedestrian crossings at city intersections.
 const lineMat=new THREE.MeshBasicMaterial({color:0xe6e0c8});
 for(let i=-4;i<=4;i++){
