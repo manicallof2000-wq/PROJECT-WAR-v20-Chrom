@@ -131,6 +131,18 @@ for(let x=-5;x<=5;x++)for(let z=-5;z<=5;z++){
   }
  }
 }
+// Road edge lines and pedestrian crossings at city intersections.
+const lineMat=new THREE.MeshBasicMaterial({color:0xe6e0c8});
+for(let i=-4;i<=4;i++){
+ for(const side of [-1,1]){
+  const edgeA=new THREE.Mesh(new THREE.PlaneGeometry(500,.13),lineMat);edgeA.rotation.x=-Math.PI/2;edgeA.position.set(0,.075,i*42+side*6.1);scene.add(edgeA);
+  const edgeB=new THREE.Mesh(new THREE.PlaneGeometry(.13,500),lineMat);edgeB.rotation.x=-Math.PI/2;edgeB.position.set(i*42+side*6.1,.076,0);scene.add(edgeB);
+ }
+ for(let k=-3;k<=3;k++){
+  const stripeA=new THREE.Mesh(new THREE.PlaneGeometry(1.15,5.5),lineMat);stripeA.rotation.x=-Math.PI/2;stripeA.position.set(i*42+k*1.65,.08,i*42+7.1);scene.add(stripeA);
+  const stripeB=new THREE.Mesh(new THREE.PlaneGeometry(5.5,1.15),lineMat);stripeB.rotation.x=-Math.PI/2;stripeB.position.set(i*42+7.1,.081,i*42+k*1.65);scene.add(stripeB);
+ }
+}
 // trees and street lamps
 for(let i=-8;i<=8;i++)for(const side of [-1,1]){
  const x=i*24,z=side*10;
