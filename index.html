@@ -172,6 +172,7 @@ const catalog=[
 ];
 function makeCar(def){
  const g=new THREE.Group();g.userData.wheels=[];
+ const visual=new THREE.Group();visual.rotation.y=Math.PI;g.add(visual);
  const loader=new GLTFLoader();
  const modelUrl='https://files.innerscene.com/library/generic-mid-engine-supercar-73f252c5/b41b620d8a8890b1b70a/generic-mid-engine-supercar.glb';
  const paint=new THREE.MeshPhysicalMaterial({color:def.color,metalness:.72,roughness:.19,clearcoat:1,clearcoatRoughness:.12,envMapIntensity:1.25});
@@ -179,7 +180,7 @@ function makeCar(def){
  const rubber=mat(0x111315,.94),chrome=new THREE.MeshStandardMaterial({color:0xb9c4ca,metalness:.88,roughness:.2});
  const black=mat(0x090d12,.55);
  function add(geo,material,x,y,z,rx=0,ry=0,rz=0){
-  const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=true;m.receiveShadow=true;g.add(m);return m;
+  const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=true;m.receiveShadow=true;visual.add(m);return m;
  }
  // Smooth, rounded side-profile geometry: a proper fallback, not rectangular boxes.
  function sideShape(points,depth,material,bevel=.07){
@@ -232,7 +233,7 @@ function makeCar(def){
   let bounds=new THREE.Box3().setFromObject(model);
   let dimensions=bounds.getSize(new THREE.Vector3());
   if(dimensions.x>dimensions.z){model.rotation.y=Math.PI/2;}
-  bounds.setFromObject(model);dimensions=bounds.getSize(new THREE.Vector3());
+  model.rotation.y+=Math.PI;\n  bounds.setFromObject(model);dimensions=bounds.getSize(new THREE.Vector3());
   if(!dimensions.x||!dimensions.y||!dimensions.z)throw new Error('Invalid vehicle model bounds');
   model.scale.set(2.05/dimensions.x,1.38/dimensions.y,4.2/dimensions.z);
   bounds.setFromObject(model);const center=bounds.getCenter(new THREE.Vector3());
