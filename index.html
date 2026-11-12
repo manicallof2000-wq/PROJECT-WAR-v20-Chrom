@@ -72,7 +72,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.164.1/examples/
 const root=document.querySelector('#game');
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x87c8ee);scene.fog=new THREE.Fog(0x9fc9d8,115,330);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,500);
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;root.appendChild(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;root.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xe8f5ff,0x526047,2.35));
 const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(-35,75,30);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-90;sun.shadow.camera.right=90;sun.shadow.camera.top=90;sun.shadow.camera.bottom=-90;sun.shadow.bias=-0.00025;scene.add(sun);
 const mat=(color,roughness=.85)=>new THREE.MeshStandardMaterial({color,roughness});
@@ -174,8 +174,8 @@ function makeCar(def){
  const g=new THREE.Group();g.userData.wheels=[];
  const loader=new GLTFLoader();
  const modelUrl='https://files.innerscene.com/library/generic-mid-engine-supercar-73f252c5/b41b620d8a8890b1b70a/generic-mid-engine-supercar.glb';
- const paint=new THREE.MeshStandardMaterial({color:def.color,metalness:.62,roughness:.24});
- const glass=new THREE.MeshPhysicalMaterial({color:0x132b3b,metalness:.25,roughness:.12,transparent:true,opacity:.88,clearcoat:1});
+ const paint=new THREE.MeshPhysicalMaterial({color:def.color,metalness:.72,roughness:.19,clearcoat:1,clearcoatRoughness:.12,envMapIntensity:1.25});
+ const glass=new THREE.MeshPhysicalMaterial({color:0x102b3d,metalness:.32,roughness:.075,transparent:true,opacity:.94,clearcoat:1,clearcoatRoughness:.06});
  const rubber=mat(0x111315,.94),chrome=new THREE.MeshStandardMaterial({color:0xb9c4ca,metalness:.88,roughness:.2});
  const black=mat(0x090d12,.55);
  function add(geo,material,x,y,z,rx=0,ry=0,rz=0){
@@ -221,7 +221,7 @@ function makeCar(def){
   add(new THREE.BoxGeometry(.34,.105,.045),new THREE.MeshStandardMaterial({color:0xf5f8ff,emissive:0x8dafff,emissiveIntensity:.65}),side*.62,.57,-2.105);
   add(new THREE.BoxGeometry(.32,.12,.05),new THREE.MeshStandardMaterial({color:0xb91f26,emissive:0x510000,emissiveIntensity:.35}),side*.64,.58,2.105);
  }
- add(new THREE.BoxGeometry(.7,.14,.06),black,0,.48,-2.13);
+ add(new THREE.BoxGeometry(.7,.14,.06),black,0,.48,-2.13);\n add(new THREE.BoxGeometry(1.55,.12,.16),chrome,0,.32,-2.08);\n add(new THREE.BoxGeometry(1.18,.08,.1),black,0,.34,-2.17);\n for(const side of [-1,1]){add(new THREE.BoxGeometry(.06,.2,.62),black,side*.91,.62,-.35);add(new THREE.BoxGeometry(.045,.19,.72),chrome,side*.91,.62,.35);}
  add(new THREE.BoxGeometry(1.5,.09,.12),black,0,.44,2.08);
  add(new THREE.BoxGeometry(1.25,.07,.12),paint,0,1.05,1.72);
  for(const side of [-1,1])add(new THREE.BoxGeometry(.08,.32,.08),black,side*.58,.9,1.72);
