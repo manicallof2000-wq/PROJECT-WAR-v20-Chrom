@@ -173,7 +173,7 @@ const catalog=[
 function makeCar(def){
  const g=new THREE.Group();g.userData.wheels=[];
  const loader=new GLTFLoader();
- const modelUrl='https://grab3d.com/dl/compact-car/compact-car.glb';
+ const modelUrl='https://files.innerscene.com/library/generic-mid-engine-supercar-73f252c5/b41b620d8a8890b1b70a/generic-mid-engine-supercar.glb';
  // Keep the detailed procedural car as a fallback while the real GLB downloads.
  const paint=new THREE.MeshStandardMaterial({color:def.color,metalness:.48,roughness:.27});
  const dark=mat(0x171c20,.5),rubber=mat(0x101214,.96),chrome=mat(0xb7c4ca,.22);
@@ -191,8 +191,20 @@ function makeCar(def){
  loader.load(modelUrl,(asset)=>{
   while(g.children.length)g.remove(g.children[0]);
   const model=asset.scene;
-  model.scale.setScalar(1.12);
+  // Normalize the downloaded supercar to the game's vehicle footprint.
   model.position.set(0,0,0);
+  let bounds=new THREE.Box3().setFromObject(model);
+  let dimensions=bounds.getSize(new THREE.Vector3());
+  // The source model may use either horizontal axis for its length.
+  if(dimensions.x>dimensions.z){model.rotation.y=Math.PI/2;}
+  bounds.setFromObject(model);
+  dimensions=bounds.getSize(new THREE.Vector3());
+  model.scale.set(2.05/dimensions.x,1.38/dimensions.y,4.2/dimensions.z);
+  bounds.setFromObject(model);
+  const center=bounds.getCenter(new THREE.Vector3());
+  model.position.x-=center.x;
+  model.position.z-=center.z;
+  model.position.y-=bounds.min.y;
   model.traverse((node)=>{
    if(node.isMesh){node.castShadow=true;node.receiveShadow=true;}
    if(node.name && /wheel|tire/i.test(node.name))g.userData.wheels.push(node);
