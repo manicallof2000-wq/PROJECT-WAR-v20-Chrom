@@ -174,44 +174,73 @@ function makeCar(def){
  const g=new THREE.Group();g.userData.wheels=[];
  const loader=new GLTFLoader();
  const modelUrl='https://files.innerscene.com/library/generic-mid-engine-supercar-73f252c5/b41b620d8a8890b1b70a/generic-mid-engine-supercar.glb';
- // Keep the detailed procedural car as a fallback while the real GLB downloads.
- const paint=new THREE.MeshStandardMaterial({color:def.color,metalness:.48,roughness:.27});
- const dark=mat(0x171c20,.5),rubber=mat(0x101214,.96),chrome=mat(0xb7c4ca,.22);
- const glass=new THREE.MeshStandardMaterial({color:0x244454,metalness:.48,roughness:.16});
- function part(geo,material,x,y,z,rx=0,ry=0,rz=0){
+ const paint=new THREE.MeshStandardMaterial({color:def.color,metalness:.62,roughness:.24});
+ const glass=new THREE.MeshPhysicalMaterial({color:0x132b3b,metalness:.25,roughness:.12,transparent:true,opacity:.88,clearcoat:1});
+ const rubber=mat(0x111315,.94),chrome=new THREE.MeshStandardMaterial({color:0xb9c4ca,metalness:.88,roughness:.2});
+ const black=mat(0x090d12,.55);
+ function add(geo,material,x,y,z,rx=0,ry=0,rz=0){
   const m=new THREE.Mesh(geo,material);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=true;m.receiveShadow=true;g.add(m);return m;
  }
- part(new THREE.BoxGeometry(2.05,.48,4.15),paint,0,.78,0);
- part(new THREE.BoxGeometry(1.58,.68,1.92),paint,0,1.43,-.2);
- for(const side of [-1,1])for(const z of [-1.35,1.35]){
-  const tire=part(new THREE.CylinderGeometry(.45,.45,.3,28),rubber,side*1.04,.48,z,0,0,Math.PI/2);g.userData.wheels.push(tire);
-  part(new THREE.CylinderGeometry(.27,.27,.315,24),chrome,side*1.04,.48,z,0,0,Math.PI/2);
+ // Smooth, rounded side-profile geometry: a proper fallback, not rectangular boxes.
+ function sideShape(points,depth,material,bevel=.07){
+  const shape=new THREE.Shape();shape.moveTo(points[0][0],points[0][1]);
+  for(let i=1;i<points.length;i++){
+   const p=points[i];
+   if(p.length===4)shape.quadraticCurveTo(p[0],p[1],p[2],p[3]);else shape.lineTo(p[0],p[1]);
+  }
+  shape.closePath();
+  const geo=new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:true,bevelSegments:4,steps:1,bevelSize:bevel,bevelThickness:bevel,curveSegments:12});
+  geo.translate(0,0,-depth/2);
+  const mesh=add(geo,material,0,0,0,0,Math.PI/2,0);
+  return mesh;
  }
- // Load a complete CC0 glTF vehicle with textured materials and a finished interior.
+ // Low, sculpted sports-car body and curved canopy.
+ sideShape([[-2.12,.28],[-2.18,.43,-1.92,.61],[-1.5,.82,-.92,.84],[.95,.84],[1.55,.78,1.92,.59],[2.12,.43],[2.08,.27],[-2.12,.28]],1.88,paint,.09);
+ sideShape([[-1.15,.78],[-1.02,1.18,-.56,1.38],[.38,1.42],[.88,1.28,1.2,.79]],1.48,paint,.045);
+ // Dark panoramic side windows, front and rear glass.
+ for(const side of [-1,1]){
+  const paneShape=new THREE.Shape();paneShape.moveTo(-.94,.91);paneShape.quadraticCurveTo(-.8,1.2,-.48,1.27);paneShape.lineTo(.3,1.29);paneShape.quadraticCurveTo(.73,1.18,1.02,.91);paneShape.lineTo(-.94,.91);
+  const paneGeo=new THREE.ShapeGeometry(paneShape,16);
+  const pane=add(paneGeo,glass,side*.755,0,0,0,Math.PI/2,0);
+  pane.material.side=THREE.DoubleSide;
+  // side mirror
+  add(new THREE.SphereGeometry(.105,16,12),paint,side*.94,1.0,-.76);
+  // wheel arches as dark curved fender lips
+  for(const z of [-1.28,1.28]){
+   add(new THREE.TorusGeometry(.48,.055,10,32,Math.PI),black,side*.96,.48,z,0,0,Math.PI);
+  }
+ }
+ // Four detailed wheels, alloy rims and hubs.
+ for(const side of [-1,1])for(const z of [-1.28,1.28]){
+  const tire=add(new THREE.CylinderGeometry(.43,.43,.24,32),rubber,side*.96,.47,z,0,0,Math.PI/2);g.userData.wheels.push(tire);
+  add(new THREE.CylinderGeometry(.265,.265,.255,32),chrome,side*1.0,.47,z,0,0,Math.PI/2);
+  add(new THREE.CylinderGeometry(.12,.12,.26,24),black,side*1.01,.47,z,0,0,Math.PI/2);
+ }
+ // Front and rear light clusters, grille, lower splitters and spoiler.
+ for(const side of [-1,1]){
+  add(new THREE.BoxGeometry(.34,.105,.045),new THREE.MeshStandardMaterial({color:0xf5f8ff,emissive:0x8dafff,emissiveIntensity:.65}),side*.62,.57,-2.105);
+  add(new THREE.BoxGeometry(.32,.12,.05),new THREE.MeshStandardMaterial({color:0xb91f26,emissive:0x510000,emissiveIntensity:.35}),side*.64,.58,2.105);
+ }
+ add(new THREE.BoxGeometry(.7,.14,.06),black,0,.48,-2.13);
+ add(new THREE.BoxGeometry(1.5,.09,.12),black,0,.44,2.08);
+ add(new THREE.BoxGeometry(1.25,.07,.12),paint,0,1.05,1.72);
+ for(const side of [-1,1])add(new THREE.BoxGeometry(.08,.32,.08),black,side*.58,.9,1.72);
+ // If the detailed external asset loads, replace the fallback.
  loader.load(modelUrl,(asset)=>{
-  while(g.children.length)g.remove(g.children[0]);
   const model=asset.scene;
-  // Normalize the downloaded supercar to the game's vehicle footprint.
   model.position.set(0,0,0);
   let bounds=new THREE.Box3().setFromObject(model);
   let dimensions=bounds.getSize(new THREE.Vector3());
-  // The source model may use either horizontal axis for its length.
   if(dimensions.x>dimensions.z){model.rotation.y=Math.PI/2;}
-  bounds.setFromObject(model);
-  dimensions=bounds.getSize(new THREE.Vector3());
+  bounds.setFromObject(model);dimensions=bounds.getSize(new THREE.Vector3());
+  if(!dimensions.x||!dimensions.y||!dimensions.z)throw new Error('Invalid vehicle model bounds');
   model.scale.set(2.05/dimensions.x,1.38/dimensions.y,4.2/dimensions.z);
-  bounds.setFromObject(model);
-  const center=bounds.getCenter(new THREE.Vector3());
-  model.position.x-=center.x;
-  model.position.z-=center.z;
-  model.position.y-=bounds.min.y;
-  model.traverse((node)=>{
-   if(node.isMesh){node.castShadow=true;node.receiveShadow=true;}
-   if(node.name && /wheel|tire/i.test(node.name))g.userData.wheels.push(node);
-  });
-  g.add(model);
-  g.userData.realModelLoaded=true;
- },undefined,(error)=>{console.warn('GLB vehicle could not load; using built-in car model.',error);});
+  bounds.setFromObject(model);const center=bounds.getCenter(new THREE.Vector3());
+  model.position.x-=center.x;model.position.z-=center.z;model.position.y-=bounds.min.y;
+  model.traverse(node=>{if(node.isMesh){node.castShadow=true;node.receiveShadow=true;}if(node.name&&/wheel|tire/i.test(node.name))g.userData.wheels.push(node);});
+  while(g.children.length)g.remove(g.children[0]);
+  g.add(model);g.userData.realModelLoaded=true;
+ },undefined,error=>console.warn('Detailed vehicle model unavailable; rounded sports-car fallback is active.',error));
  return g;
 }
 let owned=[0],selected=0,cash=50000,car=makeCar(catalog[0]);scene.add(car);car.position.set(0,0,4);
